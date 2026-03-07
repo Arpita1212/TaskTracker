@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <title>Task Calendar</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <style>
+
+        body{
+        font-family: Arial;
+        background:#f4f6f9;
+        padding:30px;
+        }
+
+        #calendar{
+        max-width:900px;
+        margin:auto;
+        background:white;
+        padding:20px;
+        border-radius:10px;
+        box-shadow:0 4px 10px rgba(0,0,0,0.2);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1 style="text-align:center">Task Calendar</h1>
+
+<div id="calendar"></div>
+
+<script th:inline="javascript">
+
+    let tasks = [[${todos}]];
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+
+    initialView: 'dayGridMonth',
+
+    events: tasks.map(t => ({
+    title: t.taskname,
+    start: t.deadline
+    }))
+
+    });
+
+    calendar.render();
+
+    });
+
+</script>
+
+</body>
+</html>

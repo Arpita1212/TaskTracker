@@ -1,0 +1,14 @@
+package com.todo.todoApp.repository;
+
+import com.todo.todoApp.entity.Todo;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface TodoRepository extends JpaRepository<Todo, Long> {
+    List<Todo> findByStatus(String status);
+
+    List<Todo> findByIdAndStatus(Long id, String status);
+}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Todo List</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+<div class="container">
+    <form action="/search" method="get">
+
+        <input type="text" name="keyword" placeholder="Search task">
+
+        <button type="submit">Search</button>
+
+    </form>
+
+    <h2>Todo List</h2>
+
+    <a href="/insert" class="btn-add">Add New Task</a>
+
+    <br><br>
+
+    <table>
+
+        <tr>
+            <th>ID</th>
+            <th>Task</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Deadline</th>
+            <th>Priority</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr th:each="todo : ${todos}"
+            th:classappend="${todo.deadline != null and todo.deadline.isBefore(T(java.time.LocalDateTime).now()) ? 'overdue-row' : ''}">
+
+            <td th:text="${todo.id}"></td>
+            <td th:text="${todo.taskname}"></td>
+            <td th:text="${todo.description}"></td>
+            <td th:text="${todo.status}"></td>
+            <td th:text="${todo.deadline}"></td>
+
+            <td>
+<span th:text="${todo.priority}"
+      th:class="'priority-' + ${#strings.toLowerCase(todo.priority)}">
+</span>
+            </td>
+
+            <td>
+                <a th:href="@{/update/{id}(id=${todo.id})}" class="btn-update">Update</a>
+                <a th:href="@{/delete/{id}(id=${todo.id})}" class="btn-delete">Delete</a>
+
+            </td>
+
+        </tr>
+
+    </table>
+    <a th:if="${currentPage > 1}"
+    th:href="@{/(page=${currentPage - 1})}">Previous</a>
+
+    <span th:text="${currentPage}"></span>
+
+    <a th:if="${currentPage < totalPages}"
+       th:href="@{/(page=${currentPage + 1})}">Next</a>
+
+    <form action="/filter" method="get">
+
+        Filter by ID:
+        <select name="id">
+            <option value="">All</option>
+            <option th:each="todo : ${todos}"
+                    th:value="${todo.id}"
+                    th:text="${todo.id}">
+            </option>
+        </select>
+
+        Filter by Status:
+
+        <select name="status">
+
+            <option value="">All</option>
+            <option value="Pending">Pending</option>
+            <option value="InProgress">InProgress</option>
+            <option value="Completed">Completed</option>
+
+        </select>
+</div>
+<div class="dashboard">
+
+    <div class="card-box total">
+        <h3>Total Tasks</h3>
+        <p th:text="${totalTasks}"></p>
+    </div>
+
+    <div class="card-box completed">
+        <h3>Completed</h3>
+        <p th:text="${completedTasks}"></p>
+    </div>
+
+    <div class="card-box pending">
+        <h3>Pending</h3>
+        <p th:text="${pendingTasks}"></p>
+    </div>
+
+    <div class="card-box overdue">
+        <h3>Overdue</h3>
+        <p th:text="${overdueTasks}"></p>
+    </div>
+        <button type="submit">Filter</button>
+
+
+        <a href="/today" class="btn-add">Today's Tasks</a>
+
+    </form>
+
+
+</div>
+
+</body>
+</html>

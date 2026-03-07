@@ -1,0 +1,15 @@
+<link rel="stylesheet" th:href="@{/css/style.css}" xmlns:th="http://www.w3.org/1999/xhtml">
+<form action="/filter" method="get">
+  Filter by Status: <input type="text" name="status">
+  <input type="submit" value="Filter">
+</form>
+
+<table border="1">
+  <tr><th>ID</th><th>Task</th><th>Status</th></tr>
+  <!-- Thymeleaf loop -->
+  <tr th:each="todo : ${todoList}">
+    <td th:text="${todo.id}"></td>
+    <td th:text="${todo.taskname}"></td>
+    <td th:text="${todo.status}"></td>
+  </tr>
+</table>
