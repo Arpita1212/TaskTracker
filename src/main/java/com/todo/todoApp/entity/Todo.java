@@ -21,7 +21,7 @@ public class Todo {
     @Column(nullable = false)
     private String status;
 
-
+    private String name;
     private LocalDateTime deadline;
 
     @Column(nullable = false)
@@ -83,5 +83,13 @@ public class Todo {
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

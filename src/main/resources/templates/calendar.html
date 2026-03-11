@@ -1,63 +1,68 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-
     <title>Task Calendar</title>
-
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-
     <style>
-
         body{
-        font-family: Arial;
-        background:#f4f6f9;
-        padding:30px;
+            font-family: Arial;
+            background:#f4f6f9;
+            padding:30px;
         }
-
         #calendar{
-        max-width:900px;
-        margin:auto;
-        background:white;
-        padding:20px;
-        border-radius:10px;
-        box-shadow:0 4px 10px rgba(0,0,0,0.2);
+            max-width:900px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.2);
         }
-
     </style>
-
 </head>
-
 <body>
 
 <h1 style="text-align:center">Task Calendar</h1>
 
 <div id="calendar"></div>
-
+<a href="/" class="btn" style="margin-bottom: 20px; display:inline-block;">Back to Home</a>
 <script th:inline="javascript">
+    /*<![CDATA[*/
+    let tasks = /*[[${calendarTodos}]]*/ [];
 
-    let tasks = [[${todos}]];
+    const today = new Date().toISOString().split('T')[0];
+
+    // Add colors based on status
+    tasks = tasks.map(t => {
+        if(t.start < today) {            // overdue
+            t.color = 'red';
+        } else if(t.start === today){   // today
+            t.color = 'green';
+            t.display = 'block';        // ensure visibility
+        } else {
+            t.color = 'blue';           // future tasks
+        }
+        return t;
+    });
+
+    // Optional: show popup reminders for today's tasks
+    const todaysTasks = tasks.filter(t => t.start === today);
+    if(todaysTasks.length > 0){
+        let taskList = todaysTasks.map(t => t.title).join('\n');
+        alert("Today's Tasks:\n" + taskList);
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
 
-    var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: tasks
+        });
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-
-    initialView: 'dayGridMonth',
-
-    events: tasks.map(t => ({
-    title: t.taskname,
-    start: t.deadline
-    }))
-
+        calendar.render();
     });
-
-    calendar.render();
-
-    });
-
+    /*]]>*/
 </script>
 
 </body>

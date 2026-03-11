@@ -19,6 +19,7 @@
     <h2>Todo List</h2>
 
     <a href="/insert" class="btn-add">Add New Task</a>
+    <a href="/calendar" class="btn" style="margin-left: 10px;">View Calendar</a>
 
     <br><br>
 
@@ -51,8 +52,10 @@
 
             <td>
                 <a th:href="@{/update/{id}(id=${todo.id})}" class="btn-update">Update</a>
-                <a th:href="@{/delete/{id}(id=${todo.id})}" class="btn-delete">Delete</a>
-
+                <form th:action="@{/todos/{id}(id=${todo.id})}" method="post">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit">Delete</button>
+                </form>
             </td>
 
         </tr>

@@ -2,14 +2,16 @@ package com.todo.todoApp.controller;
 
 import com.todo.todoApp.entity.Todo;
 import com.todo.todoApp.service.TodoService;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class TodoController {
@@ -20,51 +22,24 @@ public class TodoController {
         this.todoService = todoService;
     }
 
+    // ------------------ HOME / DASHBOARD ------------------
     @GetMapping("/")
-    public String home(
-            @RequestParam(defaultValue = "1") int page,
-            Model model) {
+    public String home(@RequestParam(defaultValue = "1") int page, Model model) {
 
-        Page<Todo> todoPage = todoService.getTodos(page);
+        List<Todo> todos = todoService.getAllTasks();
+        todos = smartSort(todos);
 
-        model.addAttribute("todos", todoPage.getContent());
+        // Dashboard stats
+        addDashboardStats(model, todos);
+
+        model.addAttribute("todos", todos);
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", todoPage.getTotalPages());
+        model.addAttribute("totalPages", 1); // No real pagination yet
 
         return "home";
     }
-    public String home(Model model) {
 
-
-        List<Todo> todos = todoService.getAllTasks();
-        long total = todos.size();
-        todos = smartSort(todos);
-        long completed = todos.stream()
-                .filter(t -> "Completed".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        long pending = todos.stream()
-                .filter(t -> "Pending".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        long overdue = todos.stream()
-                .filter(t -> t.getDeadline() != null &&
-                        t.getDeadline().isBefore(java.time.LocalDateTime.now()) &&
-                        !"Completed".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        model.addAttribute("todos", todos);
-        model.addAttribute("totalTasks", total);
-        model.addAttribute("completedTasks", completed);
-        model.addAttribute("pendingTasks", pending);
-        model.addAttribute("overdueTasks", overdue);
-        model.addAttribute("todos", todos);
-        model.addAttribute("currentPage", 1);
-        model.addAttribute("totalPages", 1);
-        addDashboardStats(model, todos);
-            return "home";
-    }
-
+    // ------------------ INSERT TASK ------------------
     @GetMapping("/insert")
     public String showInsertForm(Model model) {
         model.addAttribute("todo", new Todo());
@@ -77,6 +52,7 @@ public class TodoController {
         return "redirect:/";
     }
 
+    // ------------------ UPDATE TASK ------------------
     @GetMapping("/update/{id}")
     public String showUpdateForm(@PathVariable Long id, Model model) {
         Todo todo = todoService.getTaskById(id);
@@ -90,65 +66,84 @@ public class TodoController {
         return "redirect:/";
     }
 
-    @GetMapping("/delete/{id}")
+    // ------------------ DELETE TASK ------------------
+    @DeleteMapping("/todos/{id}")
     public String deleteTask(@PathVariable Long id) {
         todoService.deleteTask(id);
         return "redirect:/";
     }
+
+    // ------------------ FILTER ------------------
     @GetMapping("/filter")
     public String filterTasks(@RequestParam(required = false) Long id,
-                @RequestParam(required = false) String status,
-                Model model){
+                              @RequestParam(required = false) String status,
+                              Model model) {
 
         List<Todo> todos = todoService.getAllTasks();
 
-            if(id != null){
-                todos = todos.stream()
-                        .filter(t -> t.getId().equals(id))
-                        .toList();
-            }
-
-            if(status != null && !status.isEmpty()){
-                todos = todos.stream()
-                        .filter(t -> status.equalsIgnoreCase(t.getStatus()))
-                        .toList();
-            }
-
-            model.addAttribute("todos", todos);
-
-            addDashboardStats(model, todos);
-
-            return "home";
+        if (id != null) {
+            todos = todos.stream()
+                    .filter(t -> t.getId().equals(id))
+                    .toList();
         }
 
-@GetMapping("/today")
-public String todaysTasks(Model model){
+        if (status != null && !status.isEmpty()) {
+            todos = todos.stream()
+                    .filter(t -> status.equalsIgnoreCase(t.getStatus()))
+                    .toList();
+        }
 
-    List<Todo> todos = todoService.getAllTasks();
+        todos = smartSort(todos);
 
-    java.time.LocalDate today = java.time.LocalDate.now();
+        model.addAttribute("todos", todos);
+        addDashboardStats(model, todos);
 
-    List<Todo> todayTasks = todos.stream()
-            .filter(t -> t.getDeadline() != null &&
-                    t.getDeadline().toLocalDate().equals(today))
-            .toList();
+        return "home";
+    }
 
-    model.addAttribute("todos", todayTasks);
+    // ------------------ TODAY'S TASKS ------------------
+    @GetMapping("/today")
+    public String todaysTasks(Model model) {
 
-    addDashboardStats(model, todayTasks);
+        List<Todo> todos = todoService.getAllTasks();
+        LocalDate today = LocalDate.now();
 
-    return "home";
-}
+        List<Todo> todayTasks = todos.stream()
+                .filter(t -> t.getDeadline() != null &&
+                        t.getDeadline().toLocalDate().equals(today))
+                .toList();
+
+        todayTasks = smartSort(todayTasks);
+
+        model.addAttribute("todos", todayTasks);
+        addDashboardStats(model, todayTasks);
+
+        return "home";
+    }
+
+    // ------------------ CALENDAR VIEW ------------------
     @GetMapping("/calendar")
-    public String calendarView(Model model){
+    public String calendarView(Model model) {
 
         List<Todo> todos = todoService.getAllTasks();
 
-        model.addAttribute("todos", todos);
+        // Convert to JSON-friendly objects
+        List<Map<String, String>> calendarTodos = todos.stream().map(t -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("title", t.getTaskname());
+            if(t.getDeadline() != null) {
+                map.put("start", t.getDeadline().toString()); // LocalDateTime as ISO string
+            }
+            return map;
+        }).toList();
+
+        model.addAttribute("calendarTodos", calendarTodos);
 
         return "calendar";
     }
-    private void addDashboardStats(Model model, List<Todo> todos){
+
+    // ------------------ HELPER METHODS ------------------
+    private void addDashboardStats(Model model, List<Todo> todos) {
 
         long total = todos.size();
 
@@ -162,7 +157,7 @@ public String todaysTasks(Model model){
 
         long overdue = todos.stream()
                 .filter(t -> t.getDeadline() != null &&
-                        t.getDeadline().isBefore(java.time.LocalDateTime.now()) &&
+                        t.getDeadline().isBefore(LocalDateTime.now()) &&
                         !"Completed".equalsIgnoreCase(t.getStatus()))
                 .count();
 
@@ -172,18 +167,21 @@ public String todaysTasks(Model model){
         model.addAttribute("overdueTasks", overdue);
     }
 
-    private List<Todo> smartSort(List<Todo> todos){
+    private List<Todo> smartSort(List<Todo> todos) {
 
         LocalDateTime now = LocalDateTime.now();
 
         return todos.stream()
-                .sorted((a,b) -> {
+                .sorted((a, b) -> {
 
-                    boolean aOverdue = a.getDeadline()!=null && a.getDeadline().isBefore(now);
-                    boolean bOverdue = b.getDeadline()!=null && b.getDeadline().isBefore(now);
+                    boolean aOverdue = a.getDeadline() != null && a.getDeadline().isBefore(now);
+                    boolean bOverdue = b.getDeadline() != null && b.getDeadline().isBefore(now);
 
-                    if(aOverdue && !bOverdue) return -1;
-                    if(!aOverdue && bOverdue) return 1;
+                    if (aOverdue && !bOverdue) return -1;
+                    if (!aOverdue && bOverdue) return 1;
+
+                    if (a.getDeadline() == null) return 1;
+                    if (b.getDeadline() == null) return -1;
 
                     return a.getDeadline().compareTo(b.getDeadline());
                 })
