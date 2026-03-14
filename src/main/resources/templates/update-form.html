@@ -9,7 +9,7 @@
 
 <h2>Update Task</h2>
 
-<form th:action="@{/update/{id}(id=${todo.id})}" method="post" th:object="${todo}">
+<form th:action="@{/tasks/update/{id}(id=${todo.id})}" method="post" th:object="${todo}">
 
     Task Name:
     <input type="text" th:field="*{taskname}">
@@ -28,6 +28,18 @@
     <option value="Completed">Completed</option>
 
     </select>
+    <br><br>
+
+    Deadline:
+    <input type="datetime-local" th:field="*{deadline}" required>
+    <br><br>
+
+    Priority:
+    <select th:field="*{priority}">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+    </select>
 
     <button type="submit">Update</button>
 
@@ -35,7 +47,7 @@
 
 <br>
 
-<a href="/">Back to Home</a>
+<a href="/tasks">Back to Home</a>
 
 </body>
 </html>

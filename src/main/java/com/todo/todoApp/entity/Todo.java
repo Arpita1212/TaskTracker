@@ -22,20 +22,17 @@ public class Todo {
     private String status;
 
     private String name;
+
     private LocalDateTime deadline;
 
     @Column(nullable = false)
     private String priority;
 
-    public Todo() {
-    }
+    @ManyToOne
+    @JoinColumn(name="user_id")
+    private User user;
 
-    public Todo(Long id, String taskname, String description, String status) {
-        this.id = id;
-        this.taskname = taskname;
-        this.description = description;
-        this.status = status;
-    }
+    public Todo() {}
 
     public Long getId() {
         return id;
@@ -91,5 +88,13 @@ public class Todo {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

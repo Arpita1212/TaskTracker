@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>Add Task</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title>Add Todo</title>
 </head>
 
 <body>
 
-<h2>Add New Task</h2>
+<h2>Add Todo Task</h2>
 
-<form action="/save" method="post" th:object="${todo}">
+<form th:action="@{/tasks/save}" method="post" th:object="${todo}">
 
     Task Name:
     <input type="text" th:field="*{taskname}" required>
@@ -20,33 +20,27 @@
     <br><br>
 
     Status:
-    <select name="status" th:field="*{status}" required>
-
-        <option value="">All</option>
+    <select th:field="*{status}">
         <option value="Pending">Pending</option>
-        <option value="InProgress">InProgress</option>
+        <option value="InProgress">In Progress</option>
         <option value="Completed">Completed</option>
-
     </select>
     <br><br>
-    <label>Deadline</label>
-    <input type="datetime-local" name="deadline" required>
 
-    <label>Priority</label>
+    Deadline:
+    <input type="datetime-local" th:field="*{deadline}" required>
+    <br><br>
 
-    <select name="priority">
+    Priority:
+    <select th:field="*{priority}">
         <option value="Low">Low</option>
         <option value="Medium">Medium</option>
         <option value="High">High</option>
     </select>
 
-    <button type="submit">Save Task</button>
+    <button type="submit">Save</button>
 
 </form>
-
-<br>
-
-<a href="/">Back to Home</a>
 
 </body>
 </html>
